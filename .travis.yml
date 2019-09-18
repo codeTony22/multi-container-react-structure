@@ -1,0 +1,25 @@
+language: generic 
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t jgonz127/react-multi-container-test -f ./client/Dockerfile.dev ./client
+
+
+script:
+  - docker run -e CI=true jgonz127/react-multi-container-test npm test
+
+after_success:
+  - docker build -t jgonz127/multi-client-test ./client
+  - docker build -t jgonz127/multi-nginx-test ./nginx
+  - docker build -t jgonz127/multi-server-test ./server
+  - docker build -t jgonz127/multi-worker-test ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #Take those images and push them to docker hub
+  - docker push jgonz127/multi-client-test
+  - docker push jgonz127/multi-nginx-test
+  - docker push jgonz127/multi-server-test
+  - docker push jgonz127/multi-worker-test
+
